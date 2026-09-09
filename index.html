@@ -782,7 +782,7 @@
     <!-- STEP 6: Background Music -->
     <section id="step-6" class="step-screen">
       <div class="music-card">
-        <div class="disc-icon" id="disc-icon" onclick="toggleMusic()">🎵</div>
+        <div class="disc-icon" id="disc-icon">🎵</div>
         <h2 class="serif-title" style="font-size:1.5rem;">Happy Birthday</h2>
         <p class="sub-text" style="color:var(--gold-primary);">- Special Song -</p>
 
@@ -790,8 +790,6 @@
           <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
           <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
         </div>
-
-        <button class="icon-btn" id="music-toggle-btn" onclick="toggleMusic()" style="margin-bottom:14px;">⏸</button>
 
         <p class="sub-text" style="margin-bottom:20px;">Let the music make it more special... ❤️</p>
         <button class="btn-gold" onclick="goToStep(7)">Read Wishes ➔</button>
@@ -1072,28 +1070,15 @@
       const audio = document.getElementById('bg-audio');
       const disc = document.getElementById('disc-icon');
       const wave = document.getElementById('waveform');
-      const toggleBtn = document.getElementById('music-toggle-btn');
-      if (!disc || !wave || !toggleBtn) return;
+      if (!disc || !wave) return;
 
       if (!audio.paused) {
         disc.classList.remove('paused');
         wave.classList.remove('paused');
-        toggleBtn.textContent = '⏸';
       } else {
         disc.classList.add('paused');
         wave.classList.add('paused');
-        toggleBtn.textContent = '▶';
       }
-    }
-
-    function toggleMusic() {
-      const audio = document.getElementById('bg-audio');
-      if (audio.paused) {
-        audio.play().catch(() => {});
-      } else {
-        audio.pause();
-      }
-      syncMusicUI();
     }
 
     // Keep the Step 6 disc/waveform UI updated whenever playback state changes
