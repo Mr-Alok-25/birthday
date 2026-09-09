@@ -703,7 +703,7 @@
   <div class="balloon-container" id="heart-root"></div>
 
   <!-- Background Song (put your file at assets/song.mp3) -->
-  <audio id="bg-audio" src="assets/Happy%20Birthday%20to%20you%20%F0%9F%8E%82%F0%9F%8E%89%20Panda%20and%20Bear%20%F0%9F%90%BB%20%23shorts%20%23youtubeshorts%20%23panda%20%23bear%20-%20Panda%20Land.mp3" preload="auto" loop muted playsinline autoplay></audio>
+  <audio id="bg-audio" src="assets/Happy%20Birthday%20to%20you%20%F0%9F%8E%82%F0%9F%8E%89%20Panda%20and%20Bear%20%F0%9F%90%BB%20%23shorts%20%23youtubeshorts%20%23panda%20%23bear%20-%20Panda%20Land.mp3" preload="auto" loop playsinline></audio>
 
   <div class="app-viewport">
 
@@ -874,6 +874,16 @@
 
     // Open Gift Box Step 1 -> 2 -> 3
     function openGiftBox() {
+      // Start the song FIRST and synchronously, before any other work -
+      // Android is strict about audio.play() needing to be the very first
+      // thing that happens inside the tap, or it silently blocks it.
+      const music = document.getElementById('bg-audio');
+      if (music) {
+        music.muted = false;
+        const playPromise = music.play();
+        if (playPromise) playPromise.catch(() => {});
+      }
+
       playSynthMelody();
       fireConfetti();
       goToStep(2);
@@ -1053,20 +1063,9 @@
       } catch (e) {}
     }
 
-    // Background song playback
-    // The <audio> tag starts muted+autoplay (allowed by all browsers), and gets
-    // unmuted automatically on the very first tap anywhere on the page - so the
-    // song just plays on its own without needing a dedicated "play" button.
-    function unmuteBgAudioOnce() {
-      const audio = document.getElementById('bg-audio');
-      audio.muted = false;
-      audio.play().catch(() => {});
-      syncMusicUI();
-      document.removeEventListener('click', unmuteBgAudioOnce);
-      document.removeEventListener('touchstart', unmuteBgAudioOnce);
-    }
-    document.addEventListener('click', unmuteBgAudioOnce, { once: true });
-    document.addEventListener('touchstart', unmuteBgAudioOnce, { once: true, passive: true });
+    // Background song playback - starts the moment the gift box is tapped
+    // (see openGiftBox above). The tap itself is the user gesture browsers
+    // require before audio is allowed to play with sound.
 
     // Keep the disc / waveform visuals in sync with actual playback state
     function syncMusicUI() {
@@ -1076,7 +1075,7 @@
       const toggleBtn = document.getElementById('music-toggle-btn');
       if (!disc || !wave || !toggleBtn) return;
 
-      if (!audio.paused && !audio.muted) {
+      if (!audio.paused) {
         disc.classList.remove('paused');
         wave.classList.remove('paused');
         toggleBtn.textContent = '⏸';
@@ -1089,14 +1088,17 @@
 
     function toggleMusic() {
       const audio = document.getElementById('bg-audio');
-      if (audio.paused || audio.muted) {
-        audio.muted = false;
+      if (audio.paused) {
         audio.play().catch(() => {});
       } else {
         audio.pause();
       }
       syncMusicUI();
     }
+
+    // Keep the Step 6 disc/waveform UI updated whenever playback state changes
+    document.getElementById('bg-audio').addEventListener('play', syncMusicUI);
+    document.getElementById('bg-audio').addEventListener('pause', syncMusicUI);
 
     // Generate Floating Colorful Balloons
     function generateBalloons() {
